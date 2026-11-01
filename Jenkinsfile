@@ -3,33 +3,29 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+        stage('Install Dependencies') {
             steps {
-                echo 'Code checked out from Git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo 'Building FastAPI application'
+                bat 'pip install -r requirements.txt'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running tests'
+                bat 'pytest'
             }
         }
 
         stage('Build Image') {
             steps {
-                echo 'Building Podman image'
+                bat 'podman build -t fastapi-rag:latest .'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying application'
+                bat 'podman stop rag-api || exit /b 0'
+                bat 'podman rm rag-api || exit /b 0'
+                bat 'podman run -d --name rag-api -p 8000:8000 fastapi-rag:latest'
             }
         }
     }
